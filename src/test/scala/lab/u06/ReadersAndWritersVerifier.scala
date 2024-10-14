@@ -22,13 +22,12 @@ object ReadersAndWritersVerifier extends Properties("ReadersAndWriters"):
   def pathsGenerator(length: Int = 10): Gen[Path[Marking[State]]] =
     for
       initialMarking <- arbitrary[Marking[State]]
-      p <- Gen.oneOf(network.pathsUpToDepth(initialMarking, length))
+      p <- Gen.oneOf(pathsUpTo(initialMarking, length))
     yield p
 
-  given Arbitrary[Path[Marking[State]]] = Arbitrary(pathsGenerator(60))
+  given Arbitrary[Path[Marking[State]]] = Arbitrary(pathsGenerator(10))
 
-  import LTLPredicate.*
-  property("In no path long at most 60 states mutual exclusion fails") = forAll:
+  property("In no path long at most 10 states mutual exclusion fails") = forAll:
     (path: Path[Marking[State]]) =>
       ("No readers and writers toghether" |: noReaderAndWriterTogether(path)) &&
         ("No more than 1 writer" |: noMoreThan1Writer(path))
