@@ -5,39 +5,21 @@ import lab.u06.PetriNet.~~>
 import LTLPredicate.*
 import lab.u06.PetriNet.Marking
 import lab.u06.SystemAnalysis.Path
+import lab.u06.SystemAnalysis.pathsUpToDepth
+import lab.u06.SystemAnalysis.paths
 
 object ReadersAndWriters:
   enum State:
-    case IDLE, R, W, DONE, RC, WC
+    case IDLE, R, W, DONE, RC, WC, WC1, WC2
   import State.*
+  given [S]: Conversion[S => Boolean, LTLPredicate[S]] = Atom(_)
 
-  private def netStates(nTokens: Int): Set[Marking[State]] =
-    State.values
-      .flatMap(List.fill(nTokens)(_))
-      .combinations(nTokens)
-      .map(l => MSet(l*))
-      .toSet
-
-  def pathsUpTo(from: Marking[State], l: Int): LazyList[Path[Marking[State]]] =
-    val states = netStates(from.size)
-    def loop(s: Marking[State], depth: Int): LazyList[Path[Marking[State]]] =
-      depth match {
-        case 0 => LazyList()
-        case 1 => LazyList(List(s))
-        case _ =>
-          for {
-            path <- loop(s, depth - 1)
-            next <- states.filter(s => network.next(path.last).contains(s))
-          } yield path :+ next
-      }
-    loop(from, l)
-
-  val noReaderAndWriterTogether: LTLPredicate[State] = `[]`(
-    !_.matches(MSet(RC, WC))
-  )
-  val noMoreThan1Writer: LTLPredicate[State] = `[]`(!_.matches(MSet(WC, WC)))
-  val mutualExclusion: LTLPredicate[State] =
-    noReaderAndWriterTogether && noMoreThan1Writer
+  val noReaderAndWriterTogether: LTLPredicate[Marking[State]] =
+    `[]`((m: Marking[State]) => !m.matches(MSet(RC, WC)))
+  val noMoreThanOneWriter: LTLPredicate[Marking[State]] =
+    `[]`((m: Marking[State]) => !m.matches(MSet(WC, WC)))
+  val mutualExclusion: LTLPredicate[Marking[State]] =
+    noReaderAndWriterTogether && noMoreThanOneWriter
 
   val network: System[MSet[State]] = PetriNet[State](
     MSet(IDLE) ~~> MSet(R),
@@ -48,7 +30,30 @@ object ReadersAndWriters:
     MSet(WC) ~~> MSet(IDLE)
   ).toSystem
 
+  val safeNetwork: System[MSet[State]] = PetriNet[State](
+    MSet(IDLE) ~~> MSet(R) ^^^ MSet(DONE),
+    MSet(IDLE) ~~> MSet(W) ^^^ MSet(DONE),
+    MSet(R) ~~> MSet(RC) ^^^ MSet(WC),
+    MSet(W) ~~> MSet(WC) ^^^ MSet(WC, RC),
+    MSet(RC) ~~> MSet(DONE),
+    MSet(WC) ~~> MSet(DONE),
+    MSet(DONE) ~~> MSet(IDLE) ^^^ MSet(R, W, WC, RC)
+  ).toSystem
+
+  val atMostTwoWriters: System[MSet[State]] = PetriNet[State](
+    MSet(IDLE) ~~> MSet(R),
+    MSet(IDLE) ~~> MSet(W),
+    MSet(R) ~~> MSet(RC) ^^^ MSet(WC1, WC2),
+    MSet(W) ~~> MSet(WC1) ^^^ MSet(RC, WC1),
+    MSet(W) ~~> MSet(WC2) ^^^ MSet(RC, WC2),
+    MSet(RC) ~~> MSet(IDLE),
+    MSet(WC1) ~~> MSet(IDLE),
+    MSet(WC2) ~~> MSet(IDLE)
+  ).toSystem
+
 object TryPetriNet extends App:
   import ReadersAndWriters.*
   import State.*
-  for path <- pathsUpTo(MSet(IDLE, IDLE, IDLE), 10) do println(path)
+  val wrongStates = (Seq.fill(3)(WC1) ++ Seq.fill(3)(WC2)).combinations(3).take(5).foreach(println)
+  println(wrongStates)
+  // for path <- safeNetwork.paths(MSet(IDLE, IDLE, IDLE), 15) do println(path)

@@ -1,33 +1,41 @@
 package lab.u06
 
-import org.scalacheck.Properties
 import org.scalacheck.Arbitrary.{arbitrary}
 import lab.u06.PetriNet.Marking
 import lab.u06.utils.MSet
 import lab.u06.ReadersAndWriters.State.*
 import org.scalacheck.Gen
 import org.scalacheck.Arbitrary
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.propspec.AnyPropSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import lab.u06.LTLPredicate.satisfies
+import lab.u06.LTLPredicate.{*, given}
 
-object ReadersAndWritersVerifier extends Properties("ReadersAndWriters"):
+class ReadersAndWritersVerifier extends AnyPropSpec with Matchers:
   import ReadersAndWriters.*
   import SystemAnalysis.*
 
-  given Arbitrary[Marking[State]] = Arbitrary:
-    for
-      n <- Gen.choose(1, 3)
-      states <- Gen.listOfN(n, Gen.const(IDLE))
-    yield MSet(states*)
+  val initialMarking = MSet(IDLE, IDLE, IDLE)
+  val pathLength = 15
+  val paths = network.pathsUpToDepth(initialMarking, pathLength)
 
-  def pathsGenerator(length: Int = 10): Gen[Path[Marking[State]]] =
-    for
-      initialMarking <- arbitrary[Marking[State]]
-      p <- Gen.oneOf(pathsUpTo(initialMarking, length))
-    yield p
+  private def state(m: Marking[State]): Marking[State] => Boolean =
+    (s: Marking[State]) => s.matches(m)
 
-  given Arbitrary[Path[Marking[State]]] = Arbitrary(pathsGenerator(10))
+  property(
+    s"In no path long at most $pathLength states the mutual exclusion property should fail"
+  ):
+    paths foreach: p =>
+      p satisfies mutualExclusion shouldBe true
 
-  property("In no path long at most 10 states mutual exclusion fails") = forAll:
-    (path: Path[Marking[State]]) =>
-      ("No readers and writers toghether" |: noReaderAndWriterTogether(path)) &&
-        ("No more than 1 writer" |: noMoreThan1Writer(path))
+  property("If a reader wants to read it will eventually surely do it"):
+    safeNetwork.paths(MSet(R, IDLE, IDLE), 10) foreach: p =>
+      if !(p satisfies state(MSet(R)) -> E(state(MSet(RC))))
+      then fail("Property failed on path: " + p)
+
+  property("At most two writers"):
+    val wrongStates = (Seq.fill(3)(WC1) ++ Seq.fill(3)(WC2)).combinations(3)
+    atMostTwoWriters.pathsUpToDepth(MSet(W, W, W), 10) foreach: p =>
+      if !(p satisfies `[]`((s: Marking[State]) => !(wrongStates contains s)))
+      then fail("Property failed on path: " + p)
