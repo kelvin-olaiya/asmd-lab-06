@@ -24,12 +24,12 @@ object LTLPredicate:
   case class Not[S](p: LTLPredicate[S]) extends LTLPredicate[S]:
     override def apply(path: Path[S]): Boolean = !p(path)
 
-  case class Always[S](p: LTLPredicate[S]) extends LTLPredicate[S]:
+  case class Globally[S](p: LTLPredicate[S]) extends LTLPredicate[S]:
     override def apply(path: Path[S]): Boolean = path match
       case head :: next => p(path) && apply(next)
       case Nil          => true
 
-  case class Eventually[S](p: LTLPredicate[S]) extends LTLPredicate[S]:
+  case class Finally[S](p: LTLPredicate[S]) extends LTLPredicate[S]:
     override def apply(path: Path[S]): Boolean = path match
       case head :: next => p(path) || apply(next)
       case Nil          => false
@@ -47,12 +47,12 @@ object LTLPredicate:
       case _                         => apply(path.tail)
 
   def p[S](pred: S => Boolean): LTLPredicate[S] = Atom(pred)
-  def `[]`[S](f: LTLPredicate[S]): LTLPredicate[S] = Always(f)
-  def `[]`[S](p: S => Boolean): LTLPredicate[S] = Always(Atom(p))
-  def o[S](f: LTLPredicate[S]): LTLPredicate[S] = Next(f)
-  def o[S](p: S => Boolean): LTLPredicate[S] = Next(Atom(p))
-  def E[S](f: LTLPredicate[S]): LTLPredicate[S] = Eventually(f)
-  def E[S](p: S => Boolean): LTLPredicate[S] = Eventually(Atom(p))
+  def G[S](f: LTLPredicate[S]): LTLPredicate[S] = Globally(f)
+  def G[S](p: S => Boolean): LTLPredicate[S] = Globally(Atom(p))
+  def X[S](f: LTLPredicate[S]): LTLPredicate[S] = Next(f)
+  def X[S](p: S => Boolean): LTLPredicate[S] = Next(Atom(p))
+  def F[S](f: LTLPredicate[S]): LTLPredicate[S] = Finally(f)
+  def F[S](p: S => Boolean): LTLPredicate[S] = Finally(Atom(p))
 
   extension [S](lhs: LTLPredicate[S])
     def unary_! : LTLPredicate[S] =

@@ -31,11 +31,11 @@ class ReadersAndWritersVerifier extends AnyPropSpec with Matchers:
 
   property("If a reader wants to read it will eventually surely do it"):
     safeNetwork.paths(MSet(R, IDLE, IDLE), 10) foreach: p =>
-      if !(p satisfies state(MSet(R)) -> E(state(MSet(RC))))
+      if !(p satisfies state(MSet(R)) -> F(state(MSet(RC))))
       then fail("Property failed on path: " + p)
 
   property("At most two writers"):
     val wrongStates = (Seq.fill(3)(WC1) ++ Seq.fill(3)(WC2)).combinations(3)
     atMostTwoWriters.pathsUpToDepth(MSet(W, W, W), 10) foreach: p =>
-      if !(p satisfies `[]`((s: Marking[State]) => !(wrongStates contains s)))
+      if !(p satisfies G((s: Marking[State]) => !(wrongStates contains s)))
       then fail("Property failed on path: " + p)

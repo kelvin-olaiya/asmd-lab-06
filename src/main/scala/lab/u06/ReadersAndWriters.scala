@@ -15,9 +15,9 @@ object ReadersAndWriters:
   given [S]: Conversion[S => Boolean, LTLPredicate[S]] = Atom(_)
 
   val noReaderAndWriterTogether: LTLPredicate[Marking[State]] =
-    `[]`((m: Marking[State]) => !m.matches(MSet(RC, WC)))
+    G((m: Marking[State]) => !m.matches(MSet(RC, WC)))
   val noMoreThanOneWriter: LTLPredicate[Marking[State]] =
-    `[]`((m: Marking[State]) => !m.matches(MSet(WC, WC)))
+    G((m: Marking[State]) => !m.matches(MSet(WC, WC)))
   val mutualExclusion: LTLPredicate[Marking[State]] =
     noReaderAndWriterTogether && noMoreThanOneWriter
 
@@ -54,6 +54,7 @@ object ReadersAndWriters:
 object TryPetriNet extends App:
   import ReadersAndWriters.*
   import State.*
-  val wrongStates = (Seq.fill(3)(WC1) ++ Seq.fill(3)(WC2)).combinations(3).take(5).foreach(println)
+  val wrongStates = (Seq.fill(3)(WC1) ++ Seq
+    .fill(3)(WC2)).combinations(3).take(5).foreach(println)
   println(wrongStates)
   // for path <- safeNetwork.paths(MSet(IDLE, IDLE, IDLE), 15) do println(path)
