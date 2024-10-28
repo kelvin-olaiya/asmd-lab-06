@@ -26,19 +26,25 @@ object ReadersAndWriters:
     MSet(IDLE) ~~> MSet(W),
     MSet(R) ~~> MSet(RC) ^^^ MSet(WC),
     MSet(W) ~~> MSet(WC) ^^^ MSet(WC, RC),
-    MSet(RC) ~~> MSet(IDLE),
-    MSet(WC) ~~> MSet(IDLE)
+    MSet(RC) ~~> MSet(DONE),
+    MSet(WC) ~~> MSet(DONE)
   ).toSystem
 
-  val safeNetwork: System[MSet[State]] = PetriNet[State](
+  private val safeNetworkPN = PetriNet[State](
     MSet(IDLE) ~~> MSet(R) ^^^ MSet(DONE),
     MSet(IDLE) ~~> MSet(W) ^^^ MSet(DONE),
     MSet(R) ~~> MSet(RC) ^^^ MSet(WC),
     MSet(W) ~~> MSet(WC) ^^^ MSet(WC, RC),
     MSet(RC) ~~> MSet(DONE),
-    MSet(WC) ~~> MSet(DONE),
-    MSet(DONE) ~~> MSet(IDLE) ^^^ MSet(R, W, WC, RC)
-  ).toSystem
+    MSet(WC) ~~> MSet(DONE)
+    // MSet(DONE) ~~> MSet(IDLE) ^^^ MSet(R, W, WC, RC)
+  )
+
+  def safeNetwork(nProcs: Int): System[MSet[State]] =
+    (safeNetworkPN + (
+      MSet.ofList(List.fill(nProcs)(DONE)) ~~>
+        MSet.ofList(List.fill(nProcs)(IDLE))
+    )).toSystem
 
   val atMostTwoWriters: System[MSet[State]] = PetriNet[State](
     MSet(IDLE) ~~> MSet(R),
@@ -51,10 +57,8 @@ object ReadersAndWriters:
     MSet(WC2) ~~> MSet(IDLE)
   ).toSystem
 
-object TryPetriNet extends App:
+object TryReadersAndWriters extends App:
   import ReadersAndWriters.*
   import State.*
-  val wrongStates = (Seq.fill(3)(WC1) ++ Seq
-    .fill(3)(WC2)).combinations(3).take(5).foreach(println)
-  println(wrongStates)
-  // for path <- safeNetwork.paths(MSet(IDLE, IDLE, IDLE), 15) do println(path)
+
+  safeNetwork(3).paths(MSet(IDLE, RC, IDLE), 15).take(3).foreach(println)

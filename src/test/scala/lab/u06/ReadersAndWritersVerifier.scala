@@ -30,7 +30,7 @@ class ReadersAndWritersVerifier extends AnyPropSpec with Matchers:
       p satisfies mutualExclusion shouldBe true
 
   property("If a reader wants to read it will eventually surely do it"):
-    safeNetwork.paths(MSet(R, IDLE, IDLE), 10) foreach: p =>
+    safeNetwork(3).paths(MSet(R, IDLE, IDLE), 13) foreach: p =>
       if !(p satisfies state(MSet(R)) -> F(state(MSet(RC))))
       then fail("Property failed on path: " + p)
 

@@ -4,6 +4,7 @@ import lab.u06.utils.MSet
 import lab.u06.PriorityPetriNet.~~>
 import lab.u06.SystemAnalysis.pathsUpToDepth
 import lab.u06.SystemAnalysis.paths
+import lab.u06.PriorityPetriNet.toSystem
 
 object TrainJunction:
   enum State:

@@ -4,16 +4,13 @@ import lab.u06.utils.MSet
 
 object PriorityPetriNet:
 
-  // pre-conditions, effects, inhibition
-  case class Trn[P](cond: MSet[P], eff: MSet[P], inh: MSet[P])
-  type PetriNet[P] = Set[(Int, Trn[P])]
-  type Marking[P] = MSet[P]
+  import PetriNet.{Marking, Trn}
+  type PriorityPetriNet[P] = Set[(Int, Trn[P])]
 
-  // factory of A Petri Net
-  def apply[P](transitions: (Int, Trn[P])*): PetriNet[P] = transitions.toSet
+  def apply[P](transitions: (Int, Trn[P])*): PriorityPetriNet[P] =
+    transitions.toSet
 
-  // factory of a System, as a toSystem method
-  extension [P](pn: PetriNet[P])
+  extension [P](pn: PriorityPetriNet[P])
     def toSystem: System[Marking[P]] = m =>
       val enabledTransitions = pn
         .filter { case (_, Trn(cond, _, inh)) =>
@@ -29,7 +26,6 @@ object PriorityPetriNet:
         out <- m extract cond // remove precondition
       yield out union eff // add effect
 
-  // fancy syntax to create transition rules
   extension [P](self: Marking[P])
     def ~~>(trn: (Int, Marking[P])) = trn match
       case (p, y) => (p, Trn(self, y, MSet()))
