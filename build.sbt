@@ -1,7 +1,7 @@
 import java.io.File
 import Dependecies.*
 
-ThisBuild / scalaVersion := "3.6.3"
+ThisBuild / scalaVersion := "3.6.4"
 ThisBuild / organization := "io.github.kelvindev15"
 
 enablePlugins(CucumberPlugin)
@@ -24,7 +24,7 @@ Compile / doc / target := baseDirectory.value / "api"
 lazy val hello = (project in file("."))
   .settings(
     name := "Hello",
-    scalaVersion := "3.6.3",
+    scalaVersion := "3.6.4",
     libraryDependencies ++= scalaTestBundle,
     libraryDependencies ++= cucumberBundle,
     libraryDependencies += scalaTestJUnit5,
