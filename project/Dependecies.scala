@@ -16,7 +16,7 @@ object Dependecies {
   val cucumberScala = "io.cucumber" %% "cucumber-scala" % cucumberVersion % Test
   val scalactic = "org.scalactic" %% "scalactic" % scalaTestVersion
   val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
-  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.18.1" % Test
+  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.19.0" % Test
   val scalaTestJUnit5 =
     "org.scalatestplus" %% "junit-5-10" % "3.2.19.1" % Test
   val mockitoCore = "org.mockito" % "mockito-core" % "5.19.0" % Test
