@@ -9,7 +9,7 @@ object Dependecies {
   /*
    * Libraries
    */
-  val cucumberCore = "io.cucumber" % "cucumber-core" % "7.34.7" % Test
+  val cucumberCore = "io.cucumber" % "cucumber-core" % "7.34.8" % Test
   val cucumberJunit =
     "io.cucumber" % "cucumber-junit" % cucumberVersion % Test
   val cucumberJvm = "io.cucumber" % "cucumber-jvm" % cucumberVersion % Test
